@@ -2,8 +2,8 @@ package com.snayak.puzzle;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
-import android.os.Debug;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,11 +11,11 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.View;
 import android.widget.GridLayout;
-import android.widget.TextView;
-
-import org.w3c.dom.Text;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -26,38 +26,55 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-
-        final GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
-
+        //Declaring the onClick listener for all the tiles
         View.OnClickListener listener = new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // set listeners for all the TextViews in the Grid
-                TextView textView = (TextView) view;
+                ImageView imgView = (ImageView) view;
                 //skip listener if empty cell is touched
-                if(textView.getText() != "") {
-                    assess(view.getId());
+                //TODO fix this to the right logic
+                Bitmap currentBitMap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
+                Bitmap emptyBitmap = Bitmap.createBitmap(currentBitMap.getWidth(), currentBitMap.getHeight(), Bitmap.Config.ARGB_8888);
+                if (!currentBitMap.sameAs(emptyBitmap)) {
+                    // myBitmap is not empty/blank
+                    assess(imgView.getId());
                 }
             }
         };
 
-        for(int i=0;i<9;i++) {
-            TextView textView = new TextView(this);
-            textView.setId(i);
-            textView.setText("Cell " + i);
-            textView.setPadding(pixelToDp(30), pixelToDp(30), pixelToDp(30), pixelToDp(30));
-            textView.setTextSize(14);
-            textView.setLayoutParams(new ViewGroup.LayoutParams(pixelToDp(100), pixelToDp(100)));
-            textView.setOnClickListener(listener);
-            gridLayout.addView(textView);
-        }
-        //generate a random number from [0, 9)
+        //build the grid of images
+        final GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
+        List<Bitmap> bitmapList = createImageTiles(R.drawable.duck);
+
         Random randomNumberGenerator = new Random();
+        int n = 9;
+
+        for(int i=0;i<9;i++) {
+            ImageView imgView = new ImageView(this);
+            imgView.setId(i);
+            //set the image bitmap
+            imgView.setTag(R.drawable.duck, i);
+            //generate a random number from [0, 9)
+            int randomNum = randomNumberGenerator.nextInt(n);
+            imgView.setImageBitmap(bitmapList.get(randomNum));
+            bitmapList.remove(randomNum);
+            n--;
+
+            imgView.setPadding(pixelToDp(2), pixelToDp(2), pixelToDp(2), pixelToDp(2));
+            imgView.setLayoutParams(new ViewGroup.LayoutParams(pixelToDp(100), pixelToDp(100)));
+            imgView.setOnClickListener(listener);
+
+            gridLayout.addView(imgView);
+        }
+
+
+        //generate a random number from [0, 9)
         int randomNum = randomNumberGenerator.nextInt(9);
 
         //set text to empty
-        TextView emptyTextView = (TextView) gridLayout.getChildAt(randomNum);
-        emptyTextView.setText("");
+        ImageView emptyCell = (ImageView) gridLayout.getChildAt(randomNum);
+        emptyCell.setImageBitmap(Bitmap.createBitmap(pixelToDp(100), pixelToDp(100), Bitmap.Config.ARGB_8888));
 
     }
 
@@ -85,14 +102,14 @@ public class GameActivity extends AppCompatActivity {
 
     /**
      *
-     * @param drawable is the resource identifier that
+     * @param imgResource is the resource identifier that
      *                 should be passed in
      * @return List<Bitmap>>
      */
-    private List<Bitmap> createImageTiles(int drawable) {
+    private List<Bitmap> createImageTiles(int imgResource) {
         List<Bitmap> bitmapList = new ArrayList<Bitmap>();
         //create a bitmap out of the image
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), drawable);
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), imgResource);
 
         //create scaled bitmap according to size of layout
         Bitmap scaledBitmap = Bitmap.createScaledBitmap(bitmap, 300, 300, true);
@@ -114,6 +131,7 @@ public class GameActivity extends AppCompatActivity {
          *  3,4,5
          *  6,7,8]
          */
+
         return bitmapList;
     }
 
@@ -133,8 +151,8 @@ public class GameActivity extends AppCompatActivity {
 
         int index = 0;
         for(int i=0;i<9;i++) {
-            TextView textView = (TextView) gridLayout.getChildAt(i);
-            if(textView.getId() == id) {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(i);
+            if(imgView.getId() == id) {
                 index = i;
                 break;
             }
@@ -149,8 +167,10 @@ public class GameActivity extends AppCompatActivity {
         if(y-1 >= 0) {
             //top element
             int destIndex = x + 3*(y-1);
-            TextView textView = (TextView) gridLayout.getChildAt(destIndex);
-            if(textView.getText() == "") {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(destIndex);
+            Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
+            Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            if(destBitmap.sameAs(emptyBitmap)) {
                 animate(index, destIndex);
             }
         }
@@ -158,8 +178,10 @@ public class GameActivity extends AppCompatActivity {
         if(y+1<3) {
             //bottom element
             int destIndex = x + 3*(y+1);
-            TextView textView = (TextView) gridLayout.getChildAt(destIndex);
-            if(textView.getText() == "") {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(destIndex);
+            Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
+            Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            if(destBitmap.sameAs(emptyBitmap)) {
                 animate(index, destIndex);
             }
         }
@@ -167,8 +189,10 @@ public class GameActivity extends AppCompatActivity {
         if(x-1 >= 0) {
             //left element
             int destIndex = (x-1) + 3*(y);
-            TextView textView = (TextView) gridLayout.getChildAt(destIndex);
-            if(textView.getText() == "") {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(destIndex);
+            Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
+            Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            if(destBitmap.sameAs(emptyBitmap)) {
                 animate(index, destIndex);
             }
         }
@@ -176,22 +200,40 @@ public class GameActivity extends AppCompatActivity {
         if(x+1 < 3) {
             //right element
             int destIndex = (x+1) + 3*(y);
-            TextView textView = (TextView) gridLayout.getChildAt(destIndex);
-            if(textView.getText() == "") {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(destIndex);
+            Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
+            Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+            if(destBitmap.sameAs(emptyBitmap)) {
                 animate(index, destIndex);
             }
         }
 
+        boolean showToast = true;
+        //Toast Message if win
+        for(int i=0;i<9;i++) {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(i);
+            if((int) imgView.getTag(R.drawable.duck) == i) {
+                showToast = false;
+                break;
+            }
+        }
+        if(showToast) {
+            Toast.makeText(GameActivity.this, "Congratulations! You have won! Click New Game " +
+                    "to Play another one", Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void animate(int srcIndex, int destIndex) {
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
 
-        TextView textViewSrc = (TextView) gridLayout.getChildAt(srcIndex);
-        TextView textViewDest = (TextView) gridLayout.getChildAt(destIndex);
+        ImageView imgViewSrc = (ImageView) gridLayout.getChildAt(srcIndex);
+        ImageView imgViewDest = (ImageView) gridLayout.getChildAt(destIndex);
 
-        textViewDest.setText(textViewSrc.getText());
-        textViewSrc.setText("");
+        Bitmap srcBitmap = ((BitmapDrawable) imgViewSrc.getDrawable()).getBitmap();
+        Bitmap emptyBitmap = Bitmap.createBitmap(srcBitmap.getWidth(), srcBitmap.getHeight(), Bitmap.Config.ARGB_8888);
+
+        imgViewDest.setImageBitmap(srcBitmap);
+        imgViewSrc.setImageBitmap(emptyBitmap);
 
     }
 
