@@ -12,14 +12,17 @@ import android.view.ViewGroup;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
 public class GameActivity extends AppCompatActivity {
+
+    public int currScore = 0;
+    public int topScore = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +78,11 @@ public class GameActivity extends AppCompatActivity {
         //set text to empty
         ImageView emptyCell = (ImageView) gridLayout.getChildAt(randomNum);
         emptyCell.setImageBitmap(Bitmap.createBitmap(pixelToDp(100), pixelToDp(100), Bitmap.Config.ARGB_8888));
+
+        TextView best_score = (TextView) findViewById(R.id.best_score_num);
+        TextView score = (TextView) findViewById(R.id.current_score_num);
+        score.setText(this.currScore + "");
+        best_score.setText(this.topScore + "");
 
     }
 
@@ -235,6 +243,12 @@ public class GameActivity extends AppCompatActivity {
         imgViewDest.setImageBitmap(srcBitmap);
         imgViewSrc.setImageBitmap(emptyBitmap);
 
+        //update the scores
+        this.currScore++;
+        TextView best_score = (TextView) findViewById(R.id.best_score_num);
+        TextView score = (TextView) findViewById(R.id.current_score_num);
+        score.setText(this.currScore + "");
+        best_score.setText(this.topScore + "");
     }
 
 }
