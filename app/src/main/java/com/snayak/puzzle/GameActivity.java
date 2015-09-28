@@ -1,9 +1,13 @@
 package com.snayak.puzzle;
 
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -23,7 +27,31 @@ import java.util.Random;
 public class GameActivity extends AppCompatActivity {
 
     public int currScore = 0;
-    public int topScore = 0;
+    //public int topScore = 0;
+
+    private Handler handler = new Handler();
+
+    //initialize to a wrong index to catch errors on first click
+    public int last_tile_index = 10;
+
+    View.OnClickListener lastMoveListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            showLastMoveHighLight();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Called in the same thread as where the handler was created.
+                    //If the handler was created in main thread, then
+                    //we can safely update the GUI from here.
+                    removeHighlight();
+                }
+            }, 1000);
+
+        }
+    };
+
+
 
 
     //Declaring the onClick listener for all the tiles
@@ -50,7 +78,7 @@ public class GameActivity extends AppCompatActivity {
             GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
             buildGrid(gridLayout);
             //updateScores();
-            TextView best_score = (TextView) findViewById(R.id.best_score_num);
+            //TextView best_score = (TextView) findViewById(R.id.best_score_num);
             TextView score = (TextView) findViewById(R.id.current_score_num);
             //reset scores
             resetScore();
@@ -58,12 +86,12 @@ public class GameActivity extends AppCompatActivity {
     };
 
     public void resetScore() {
-        TextView best_score = (TextView) findViewById(R.id.best_score_num);
+        //TextView best_score = (TextView) findViewById(R.id.best_score_num);
         TextView score = (TextView) findViewById(R.id.current_score_num);
         this.currScore = 0;
-        this.topScore = 0;
+        //this.topScore = 0;
         score.setText(this.currScore + "");
-        best_score.setText(this.topScore + "");
+        //best_score.setText(this.topScore + "");
     }
 
     @Override
@@ -71,7 +99,9 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
-        this.topScore = 0;//TODO pull from DB
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        //this.topScore = 0;//TODO pull from DB
 
         //build the grid of images
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
@@ -80,16 +110,25 @@ public class GameActivity extends AppCompatActivity {
         buildGrid(gridLayout);
 
 
-        TextView best_score = (TextView) findViewById(R.id.best_score_num);
+        //TextView best_score = (TextView) findViewById(R.id.best_score_num);
         TextView score = (TextView) findViewById(R.id.current_score_num);
         score.setText(this.currScore + "");
-        best_score.setText(this.topScore + "");
+        //best_score.setText(this.topScore + "");
 
-        //set listener on the button
+        //set listener on the new game button
         Button newGameButton = (Button) findViewById(R.id.new_game_button);
         newGameButton.setOnClickListener(newGamelistener);
+
+        //set listener on the button
+        Button lastMoveButton = (Button) findViewById(R.id.last_move_button);
+        lastMoveButton.setOnClickListener(lastMoveListener);
     }
 
+
+    /**
+     *
+     * @param layout
+     */
     public void buildGrid(GridLayout layout) {
         //clear old tiles if any
         layout.removeAllViews();
@@ -100,8 +139,8 @@ public class GameActivity extends AppCompatActivity {
 
         //build the grid of images
         final GridLayout gridLayout = layout;
-        List<Bitmap> bitmapList = createImageTiles(R.drawable.duck);
 
+        List<Bitmap> bitmapList = createImageTiles(R.drawable.duck, layout);
 
         int n = 9;
 
@@ -128,7 +167,9 @@ public class GameActivity extends AppCompatActivity {
 
         //set image to empty
         ImageView emptyCell = (ImageView) gridLayout.getChildAt(randomNum);
-        emptyCell.setImageBitmap(Bitmap.createBitmap(pixelToDp(100), pixelToDp(100), Bitmap.Config.ARGB_8888));
+
+        emptyCell.setImageBitmap(Bitmap.createBitmap(pixelToDp(100),
+                pixelToDp(100), Bitmap.Config.ARGB_8888));
     }
 
 
@@ -165,8 +206,13 @@ public class GameActivity extends AppCompatActivity {
      *                    should be passed in
      * @return List<Bitmap>>
      */
-    private List<Bitmap> createImageTiles(int imgResource) {
+    private List<Bitmap> createImageTiles(int imgResource, GridLayout layout) {
         List<Bitmap> bitmapList = new ArrayList<Bitmap>();
+
+        int height = layout.getLayoutParams().height;
+        int width = layout.getLayoutParams().height;
+
+
         //create a bitmap out of the image
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), imgResource);
 
@@ -297,10 +343,33 @@ public class GameActivity extends AppCompatActivity {
 
         //update the scores
         this.currScore++;
-        TextView best_score = (TextView) findViewById(R.id.best_score_num);
+        //TextView best_score = (TextView) findViewById(R.id.best_score_num);
         TextView score = (TextView) findViewById(R.id.current_score_num);
         score.setText(this.currScore + "");
-        best_score.setText(this.topScore + "");
+        //best_score.setText(this.topScore + "");
+
+        //update last_tile_index with source index
+        last_tile_index = destIndex;
     }
+
+    public void showLastMoveHighLight() {
+        GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
+        //check if last tile index is less than 3x3 indices, else show toast
+        if(this.last_tile_index < 8) {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(last_tile_index);
+            imgView.setColorFilter(Color.GREEN, PorterDuff.Mode.OVERLAY);
+        } else {
+            Toast.makeText(GameActivity.this, "You haven't made a move yet!", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void removeHighlight() {
+        GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
+        if(this.last_tile_index < 8) {
+            ImageView imgView = (ImageView) gridLayout.getChildAt(last_tile_index);
+            imgView.setColorFilter(Color.TRANSPARENT);
+        }
+    }
+
 
 }
