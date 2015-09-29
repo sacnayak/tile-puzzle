@@ -24,25 +24,31 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Class for 3x3 tile-puzzle game
+ *
+ * @author snayak
+ */
 public class GameActivity extends AppCompatActivity {
 
-    int imageForPuzzle = R.drawable.duck;//default
+    int imageForPuzzle = R.drawable.duck;//default image on-start of game
+
+    public int currScore = 0;//the game score maintained at the activity level
+
+    //initialize to a wrong index to catch error if Last Move was invoked on first click
+    public int last_tile_index = 10;
 
     int[] imageIds = {
             R.drawable.duck,
             R.drawable.grumpycat,
             R.drawable.puss_boots,
             R.drawable.gollum
-    };
+    };//List of drawable id's available for display
 
-    public int currScore = 0;
-    //public int topScore = 0;
 
     private Handler handler = new Handler();
 
-    //initialize to a wrong index to catch errors on first click
-    public int last_tile_index = 10;
-
+    //Declaring listener for the Last Move button
     View.OnClickListener lastMoveListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -60,6 +66,7 @@ public class GameActivity extends AppCompatActivity {
         }
     };
 
+    //Declaring the onChangeListener for the Change Image button
     View.OnClickListener onChangeImageListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
@@ -67,12 +74,16 @@ public class GameActivity extends AppCompatActivity {
         }
     };
 
-    public void changeImage(){
+    /**
+     * Summary: Change the puzzle background image, and restart the game.
+     * Invoked from the change image button click
+     */
+    public void changeImage() {
         Random generator = new Random();
         int randomImageId = this.imageForPuzzle;
         do {
             randomImageId = imageIds[generator.nextInt(imageIds.length)];
-        } while(randomImageId == this.imageForPuzzle);
+        } while (randomImageId == this.imageForPuzzle);
         //set the new random image as long as it is not the previous one
         this.imageForPuzzle = randomImageId;
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
@@ -82,7 +93,7 @@ public class GameActivity extends AppCompatActivity {
 
 
     //Declaring the onClick listener for all the tiles
-    View.OnClickListener listener = new View.OnClickListener() {
+    View.OnClickListener onTileClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             // set listeners for all the TextViews in the Grid
@@ -98,19 +109,22 @@ public class GameActivity extends AppCompatActivity {
     };
 
 
-    //Declaring the onClick listener for the New Game Button
+    //Declaring the onClick listener for the New Game Button. Clicking
+    //a new game will restart a random puzzle with the existing images
     View.OnClickListener newGamelistener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
             buildGrid(gridLayout);
-            //updateScores();
-            //TextView best_score = (TextView) findViewById(R.id.best_score_num);
             //reset scores
             resetScore();
         }
     };
 
+    /**
+     * Summary: Resets the TextView that displays the score of the current game
+     * Invoked either due to New game of Change Image
+     */
     public void resetScore() {
         //TextView best_score = (TextView) findViewById(R.id.best_score_num);
         TextView score = (TextView) findViewById(R.id.current_score_num);
@@ -120,14 +134,23 @@ public class GameActivity extends AppCompatActivity {
         //best_score.setText(this.topScore + "");
     }
 
+    /**
+     * Summary of Steps:
+     * Set View
+     * Build GridLayout
+     * Reset game variables
+     * Add listeners
+     *
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+        //Lock screen orientation
+        //FIXME cannot lock orientation. Have to fix this.
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-
-        //this.topScore = 0;
 
         //build the grid of images
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
@@ -156,6 +179,13 @@ public class GameActivity extends AppCompatActivity {
 
 
     /**
+     * Summary: This function randomly regenerates the GridLayout
+     * for a given input image
+     * <p/>
+     * Steps:
+     * Crop and scale the images to required cell size
+     * Randomly add images to each cell of the gridlayout
+     * Remove a random child to create empty cell
      *
      * @param layout
      */
@@ -164,50 +194,42 @@ public class GameActivity extends AppCompatActivity {
         layout.removeAllViews();
 
         Random randomNumberGenerator = new Random();
-
         this.currScore = 0;
 
         //build the grid of images
-        final GridLayout gridLayout = layout;
-
         List<Bitmap> bitmapList = createImageTiles(imageForPuzzle, layout);
 
+        //constructing the images for each cell of the grid and adding listeners to them
         int n = 9;
-
         for (int i = 0; i < 9; i++) {
             ImageView imgView = new ImageView(this);
             imgView.setId(i);
             //set the image bitmap
             imgView.setTag(imageForPuzzle, i);
-            //generate a random number from [0, 9)
+
+            //generate a random number from [0, 9) to insert into cell
             int randomNum = randomNumberGenerator.nextInt(n);
             imgView.setImageBitmap(bitmapList.get(randomNum));
+            //remove inserted image and reorder list
             bitmapList.remove(randomNum);
             n--;
 
             imgView.setPadding(pixelToDp(2), pixelToDp(2), pixelToDp(2), pixelToDp(2));
             imgView.setLayoutParams(new ViewGroup.LayoutParams(pixelToDp(100), pixelToDp(100)));
-            imgView.setOnClickListener(listener);
+            imgView.setOnClickListener(onTileClickListener);
 
-            gridLayout.addView(imgView);
+            layout.addView(imgView);
         }
 
-        //generate a random number from [0, 9)
+        //generate a random number from [0, 9) and remove a random cell
         int randomNum = randomNumberGenerator.nextInt(9);
-
         //set image to empty
-        ImageView emptyCell = (ImageView) gridLayout.getChildAt(randomNum);
+        ImageView emptyCell = (ImageView) layout.getChildAt(randomNum);
 
         emptyCell.setImageBitmap(Bitmap.createBitmap(pixelToDp(100),
                 pixelToDp(100), Bitmap.Config.ARGB_8888));
     }
 
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -232,16 +254,14 @@ public class GameActivity extends AppCompatActivity {
     }
 
     /**
+     * Takes an input image and cuts and scales it to a 3x3 cell grid
+     *
      * @param imgResource is the resource identifier that
      *                    should be passed in
      * @return List<Bitmap>>
      */
     private List<Bitmap> createImageTiles(int imgResource, GridLayout layout) {
         List<Bitmap> bitmapList = new ArrayList<Bitmap>();
-
-        int height = layout.getLayoutParams().height;
-        int width = layout.getLayoutParams().height;
-
 
         //create a bitmap out of the image
         Bitmap bitmap = BitmapFactory.decodeResource(getResources(), imgResource);
@@ -270,6 +290,12 @@ public class GameActivity extends AppCompatActivity {
         return bitmapList;
     }
 
+    /**
+     * Utility method to convert pixel to dp
+     *
+     * @param dps
+     * @return
+     */
     private int pixelToDp(int dps) {
         final float scale = getResources().getDisplayMetrics().density;
         int pixels = (int) (dps * scale + 0.5f);
@@ -277,7 +303,9 @@ public class GameActivity extends AppCompatActivity {
     }
 
     /**
-     * check if the cell clicked is valid
+     * Summary: Check if a click by the user results in a valid cell
+     * movement to an empty slot. If a cell adjacent to an empty slot
+     * is clicked, move the images to the empty spot
      *
      * @param id
      * @return
@@ -344,8 +372,9 @@ public class GameActivity extends AppCompatActivity {
             }
         }
 
+        //Show toast Message if win
         boolean showToast = true;
-        //Toast Message if win
+
         for (int i = 0; i < 9; i++) {
             ImageView imgView = (ImageView) gridLayout.getChildAt(i);
             if ((int) imgView.getTag(imageForPuzzle) == i) {
@@ -359,6 +388,16 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Summary:
+     * Given a sourceIndex and a destIndex, move the ImageView from src
+     * to destination
+     * Increment the score
+     * Update the last_tile_index for feature
+     *
+     * @param srcIndex
+     * @param destIndex
+     */
     public void animate(int srcIndex, int destIndex) {
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
 
@@ -382,10 +421,17 @@ public class GameActivity extends AppCompatActivity {
         last_tile_index = destIndex;
     }
 
+    /**
+     * Summary:
+     * If invoked, shows the user the last tile he moved to the
+     * empty cell.
+     * If the user is yet to make a move, show an error alerting that users
+     * hasn't made a move yet
+     */
     public void showLastMoveHighLight() {
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
         //check if last tile index is less than 3x3 indices, else show toast
-        if(this.last_tile_index < 8) {
+        if (this.last_tile_index < 8) {
             ImageView imgView = (ImageView) gridLayout.getChildAt(last_tile_index);
             imgView.setColorFilter(Color.GREEN, PorterDuff.Mode.OVERLAY);
         } else {
@@ -393,9 +439,13 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Removes highlight from the highlighted cell
+     * after the timer of 1 second expires
+     */
     public void removeHighlight() {
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
-        if(this.last_tile_index < 8) {
+        if (this.last_tile_index < 8) {
             ImageView imgView = (ImageView) gridLayout.getChildAt(last_tile_index);
             imgView.setColorFilter(Color.TRANSPARENT);
         }

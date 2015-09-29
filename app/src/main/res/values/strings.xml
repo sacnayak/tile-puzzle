@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Puzzle</string>
+    <string name="app_name">Grid Mania</string>
     <string name="last_move">Last Move</string>
     <string name="change_image">Change Image</string>
     <string name="best_score">Best Score</string>

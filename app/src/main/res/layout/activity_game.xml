@@ -12,8 +12,8 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="right">
+        android:layout_gravity="right"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="wrap_content"
@@ -66,9 +66,9 @@
             android:id="@+id/puzzle_grid"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:layout_gravity="center"
             android:columnCount="3"
             android:gravity="center"
-            android:layout_gravity="center"
             android:rowCount="3">
 
         </GridLayout>
