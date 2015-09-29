@@ -38,14 +38,15 @@ public class GameActivity extends AppCompatActivity {
     //initialize to a wrong index to catch error if Last Move was invoked on first click
     public int last_tile_index = 10;
 
-    int[] imageIds = {
+    int[] drawableImageIds = {
             R.drawable.duck,
             R.drawable.grumpycat,
             R.drawable.puss_boots,
-            R.drawable.gollum
+            R.drawable.gollum,
+            R.drawable.got
     };//List of drawable id's available for display
 
-
+    //Schedule a runnable to highlight cell for one second
     private Handler handler = new Handler();
 
     //Declaring listener for the Last Move button
@@ -56,9 +57,7 @@ public class GameActivity extends AppCompatActivity {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    //Called in the same thread as where the handler was created.
-                    //If the handler was created in main thread, then
-                    //we can safely update the GUI from here.
+                    //remove the highlight after the timer second
                     removeHighlight();
                 }
             }, 1000);
@@ -70,7 +69,7 @@ public class GameActivity extends AppCompatActivity {
     View.OnClickListener onChangeImageListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            changeImage();
+            changeGridImage();
         }
     };
 
@@ -78,11 +77,11 @@ public class GameActivity extends AppCompatActivity {
      * Summary: Change the puzzle background image, and restart the game.
      * Invoked from the change image button click
      */
-    public void changeImage() {
+    public void changeGridImage() {
         Random generator = new Random();
         int randomImageId = this.imageForPuzzle;
         do {
-            randomImageId = imageIds[generator.nextInt(imageIds.length)];
+            randomImageId = drawableImageIds[generator.nextInt(drawableImageIds.length)];
         } while (randomImageId == this.imageForPuzzle);
         //set the new random image as long as it is not the previous one
         this.imageForPuzzle = randomImageId;
@@ -103,7 +102,7 @@ public class GameActivity extends AppCompatActivity {
             Bitmap emptyBitmap = Bitmap.createBitmap(currentBitMap.getWidth(), currentBitMap.getHeight(), Bitmap.Config.ARGB_8888);
             if (!currentBitMap.sameAs(emptyBitmap)) {
                 // myBitmap is not empty/blank
-                assess(imgView.getId());
+                assessInput(imgView.getId());
             }
         }
     };
@@ -310,7 +309,7 @@ public class GameActivity extends AppCompatActivity {
      * @param id
      * @return
      */
-    public void assess(int id) {
+    public void assessInput(int id) {
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
 
         int index = 0;
@@ -335,7 +334,7 @@ public class GameActivity extends AppCompatActivity {
             Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
             Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
             if (destBitmap.sameAs(emptyBitmap)) {
-                animate(index, destIndex);
+                animateCell(index, destIndex);
             }
         }
 
@@ -346,7 +345,7 @@ public class GameActivity extends AppCompatActivity {
             Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
             Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
             if (destBitmap.sameAs(emptyBitmap)) {
-                animate(index, destIndex);
+                animateCell(index, destIndex);
             }
         }
 
@@ -357,7 +356,7 @@ public class GameActivity extends AppCompatActivity {
             Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
             Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
             if (destBitmap.sameAs(emptyBitmap)) {
-                animate(index, destIndex);
+                animateCell(index, destIndex);
             }
         }
 
@@ -368,7 +367,7 @@ public class GameActivity extends AppCompatActivity {
             Bitmap destBitmap = ((BitmapDrawable) imgView.getDrawable()).getBitmap();
             Bitmap emptyBitmap = Bitmap.createBitmap(destBitmap.getWidth(), destBitmap.getHeight(), Bitmap.Config.ARGB_8888);
             if (destBitmap.sameAs(emptyBitmap)) {
-                animate(index, destIndex);
+                animateCell(index, destIndex);
             }
         }
 
@@ -398,7 +397,7 @@ public class GameActivity extends AppCompatActivity {
      * @param srcIndex
      * @param destIndex
      */
-    public void animate(int srcIndex, int destIndex) {
+    public void animateCell(int srcIndex, int destIndex) {
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
 
         ImageView imgViewSrc = (ImageView) gridLayout.getChildAt(srcIndex);
