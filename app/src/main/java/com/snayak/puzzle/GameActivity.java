@@ -77,6 +77,7 @@ public class GameActivity extends AppCompatActivity {
         this.imageForPuzzle = randomImageId;
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
         buildGrid(gridLayout);
+        resetScore();
     }
 
 
@@ -105,7 +106,6 @@ public class GameActivity extends AppCompatActivity {
             buildGrid(gridLayout);
             //updateScores();
             //TextView best_score = (TextView) findViewById(R.id.best_score_num);
-            TextView score = (TextView) findViewById(R.id.current_score_num);
             //reset scores
             resetScore();
         }
