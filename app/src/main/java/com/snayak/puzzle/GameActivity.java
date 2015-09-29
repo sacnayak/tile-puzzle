@@ -26,6 +26,15 @@ import java.util.Random;
 
 public class GameActivity extends AppCompatActivity {
 
+    int imageForPuzzle = R.drawable.duck;//default
+
+    int[] imageIds = {
+            R.drawable.duck,
+            R.drawable.grumpycat,
+            R.drawable.puss_boots,
+            R.drawable.gollum
+    };
+
     public int currScore = 0;
     //public int topScore = 0;
 
@@ -51,7 +60,24 @@ public class GameActivity extends AppCompatActivity {
         }
     };
 
+    View.OnClickListener onChangeImageListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            changeImage();
+        }
+    };
 
+    public void changeImage(){
+        Random generator = new Random();
+        int randomImageId = this.imageForPuzzle;
+        do {
+            randomImageId = imageIds[generator.nextInt(imageIds.length)];
+        } while(randomImageId == this.imageForPuzzle);
+        //set the new random image as long as it is not the previous one
+        this.imageForPuzzle = randomImageId;
+        GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
+        buildGrid(gridLayout);
+    }
 
 
     //Declaring the onClick listener for all the tiles
@@ -101,7 +127,7 @@ public class GameActivity extends AppCompatActivity {
 
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
-        //this.topScore = 0;//TODO pull from DB
+        //this.topScore = 0;
 
         //build the grid of images
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
@@ -122,6 +148,10 @@ public class GameActivity extends AppCompatActivity {
         //set listener on the button
         Button lastMoveButton = (Button) findViewById(R.id.last_move_button);
         lastMoveButton.setOnClickListener(lastMoveListener);
+
+        //set listener on the buttonchange_image_button
+        Button changeImageButton = (Button) findViewById(R.id.change_image_button);
+        changeImageButton.setOnClickListener(onChangeImageListener);
     }
 
 
@@ -140,7 +170,7 @@ public class GameActivity extends AppCompatActivity {
         //build the grid of images
         final GridLayout gridLayout = layout;
 
-        List<Bitmap> bitmapList = createImageTiles(R.drawable.duck, layout);
+        List<Bitmap> bitmapList = createImageTiles(imageForPuzzle, layout);
 
         int n = 9;
 
@@ -148,7 +178,7 @@ public class GameActivity extends AppCompatActivity {
             ImageView imgView = new ImageView(this);
             imgView.setId(i);
             //set the image bitmap
-            imgView.setTag(R.drawable.duck, i);
+            imgView.setTag(imageForPuzzle, i);
             //generate a random number from [0, 9)
             int randomNum = randomNumberGenerator.nextInt(n);
             imgView.setImageBitmap(bitmapList.get(randomNum));
@@ -318,7 +348,7 @@ public class GameActivity extends AppCompatActivity {
         //Toast Message if win
         for (int i = 0; i < 9; i++) {
             ImageView imgView = (ImageView) gridLayout.getChildAt(i);
-            if ((int) imgView.getTag(R.drawable.duck) == i) {
+            if ((int) imgView.getTag(imageForPuzzle) == i) {
                 showToast = false;
                 break;
             }
