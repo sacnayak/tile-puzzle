@@ -149,7 +149,7 @@ public class GameActivity extends AppCompatActivity {
 
         //Lock screen orientation
         //FIXME cannot lock orientation. Have to fix this.
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         //build the grid of images
         GridLayout gridLayout = (GridLayout) findViewById(R.id.puzzle_grid);
